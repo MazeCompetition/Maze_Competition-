@@ -26,17 +26,22 @@
 //		|================GENERIC MACROS=================|
 //		|-----------------------------------------------|
 
+#define US_PORTx      PORTD
+#define Trig1      GPIO_PinNumber_0
+#define Trig2      GPIO_PinNumber_1
+#define Trig3      GPIO_PinNumber_2
+#define Trig4      GPIO_PinNumber_3
+
+
+
+#define  Right         0
+#define  Left          1
+#define  Front         2
+
 
 //		|-----------------------------------------------|
 //		|=============GENERIC VARIABLES=================|
 //		|-----------------------------------------------|
-
-
-
-
-//		|------------------------------------------------------------------|
-//		|=================Macros Configuration References==================|
-//		|------------------------------------------------------------------|
 
 
 
@@ -54,7 +59,7 @@
 * Note -
 */
 
-void Ultrasonic_Init(struct GPIO_t * GPIOx,uint8_t Trig1,uint8_t Trig2,uint8_t Trig3,uint8_t Trig4);
+void Ultrasonic_Init();
 
 float Ultrasonic_Read(uint8_t UltNum);
 

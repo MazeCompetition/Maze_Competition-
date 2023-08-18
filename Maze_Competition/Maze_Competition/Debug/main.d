@@ -12,7 +12,8 @@ main.d main.o: .././main.c ../MCAL_ATMEGA32/inc/ATMEGA32.h \
  ../MCAL_ATMEGA32/inc/GPIO.h ../MCAL_ATMEGA32/inc/ATMEGA32.h \
  ../HAL_ATMEGA32/inc/LCD_DRIVER.h ../MCAL_ATMEGA32/inc/TIMERs.h \
  ../MCAL_ATMEGA32/inc/GPIO.h ../HAL_ATMEGA32/inc/DC_Motor.h \
- ../HAL_ATMEGA32/inc/Ultrasonic.h
+ ../HAL_ATMEGA32/inc/Ultrasonic.h \
+ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\time.h
 
 ../MCAL_ATMEGA32/inc/ATMEGA32.h:
 
@@ -49,3 +50,5 @@ c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\
 ../HAL_ATMEGA32/inc/DC_Motor.h:
 
 ../HAL_ATMEGA32/inc/Ultrasonic.h:
+
+c:\program\ files\ (x86)\atmel\studio\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\time.h:

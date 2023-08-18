@@ -25,14 +25,12 @@
 
 
 
-
-
 //		|------------------------------------------------------------------|
 //		|=============APIs Supported by "MCAL GPIO DRIVER"=================|
 //		|------------------------------------------------------------------|
 
 
-void Ultrasonic_Init(struct GPIO_t * GPIOx , uint8_t Trig1 , uint8_t Trig2 , uint8_t Trig3 , uint8_t Trig4)
+void Ultrasonic_Init()
 {
 	TIMER1_CFG_t ultrasonic;
 	ultrasonic.TIMNUM = TIMNUM_1;	
@@ -53,19 +51,19 @@ void Ultrasonic_Init(struct GPIO_t * GPIOx , uint8_t Trig1 , uint8_t Trig2 , uin
 	struct GPIO_CFG_t gpiocfg;
 	gpiocfg.GPIO_Mode = GPIO_Mode_OUTPUT;
 	gpiocfg.GPIO_PinNumber = Trig1;
-	MCAL_GPIO_INIT_PIN(GPIOx ,&gpiocfg );
+	MCAL_GPIO_INIT_PIN(US_PORTx ,&gpiocfg );
 	
 	gpiocfg.GPIO_Mode = GPIO_Mode_OUTPUT;
 	gpiocfg.GPIO_PinNumber = Trig2;
-	MCAL_GPIO_INIT_PIN(GPIOx ,&gpiocfg );
+	MCAL_GPIO_INIT_PIN(US_PORTx ,&gpiocfg );
 			
 	gpiocfg.GPIO_Mode = GPIO_Mode_OUTPUT;
 	gpiocfg.GPIO_PinNumber = Trig3;
-	MCAL_GPIO_INIT_PIN(GPIOx ,&gpiocfg );
+	MCAL_GPIO_INIT_PIN(US_PORTx ,&gpiocfg );
 				
 	gpiocfg.GPIO_Mode = GPIO_Mode_OUTPUT;
 	gpiocfg.GPIO_PinNumber = Trig4;
-	MCAL_GPIO_INIT_PIN(GPIOx ,&gpiocfg );
+	MCAL_GPIO_INIT_PIN(US_PORTx ,&gpiocfg );
 		
 	MCAL_TIMER1_INIT(&ultrasonic);
 }
@@ -76,29 +74,29 @@ float Ultrasonic_Read(uint8_t UltNum)
 	float distance = 0;
 	if (UltNum == 1)
 	{
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_0 , 1);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig1 , 1);
 		_delay_ms(10);
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_0 , 0);		
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig1 , 0);		
 	}
 	else if (UltNum == 2)
 	{
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_1 , 1);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig2 , 1);
 		_delay_ms(10);
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_1 , 0);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig2 , 0);
 				
 	}
 	else if (UltNum == 3)
 	{
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_2 , 1);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig3 , 1);
 		_delay_ms(10);
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_2 , 0);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig3 , 0);
 		
 	}
 	else if (UltNum == 4)
 	{
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_3 , 1);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig4 , 1);
 		_delay_ms(10);
-		MCAL_GPIO_WRITE_PIN(PORTD , GPIO_PinNumber_3 , 0);
+		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig4 , 0);
 			
 	}
 	

@@ -34,8 +34,13 @@
 //		|=============GENERIC VARIABLES=================|
 //		|-----------------------------------------------|
 
+#define PORTx       PORTA
+#define PinNum1     GPIO_PinNumber_0
+#define PinNum2     GPIO_PinNumber_1
+#define PinNum3     GPIO_PinNumber_2
+#define PinNum4     GPIO_PinNumber_3
 
-
+// PB3 >> OCR0 >>> PWM for all motors 
 
 //		|------------------------------------------------------------------|
 //		|=================Macros Configuration References==================|
@@ -59,7 +64,7 @@
 
 void DC_Motor_Init(struct GPIO_t * GPIOx , uint8_t PinForward , uint8_t PinBackward );
 
-void DC_Motor_Control(struct GPIO_t* GPIOx , uint8_t PinNum1 , uint8_t PinNum2 , uint8_t direction , uint16_t DutyCycle);
+void DC_Motor_Control(uint8_t direction , uint16_t DutyCycle);
 
 
 

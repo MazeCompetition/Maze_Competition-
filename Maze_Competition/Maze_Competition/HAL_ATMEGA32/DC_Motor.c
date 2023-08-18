@@ -64,18 +64,11 @@ void DC_Motor_Init(struct GPIO_t * GPIOx , uint8_t PinForward , uint8_t PinBackw
 	
 }
 
-void DC_Motor_Control(struct GPIO_t* GPIOx , uint8_t PinNum1 , uint8_t PinNum2 , uint8_t direction , uint16_t DutyCycle)
+void DC_Motor_Control( uint8_t direction , uint16_t DutyCycle)
 {
 	
-	if(DutyCycle == 0)
-	{
-		Timer0->TCNT0 &= ~(7);
-		
-	}
-	else
-	{
-		Timer0->TCCR0 |=  (1 << 2);
-	}
+
+	Timer0->TCCR0 |=  (1 << 2);
 
  	OCR0 = (uint8_t)(( (float)DutyCycle /100) * 256);	//0x0F
 
@@ -83,13 +76,19 @@ void DC_Motor_Control(struct GPIO_t* GPIOx , uint8_t PinNum1 , uint8_t PinNum2 ,
 	if(direction == direction_right)
 	{
 		
-		MCAL_GPIO_WRITE_PIN(GPIOx , PinNum1 , 1);
-		MCAL_GPIO_WRITE_PIN(GPIOx , PinNum2 , 0);
+		MCAL_GPIO_WRITE_PIN(PORTx , PinNum1 , 1);
+		MCAL_GPIO_WRITE_PIN(PORTx , PinNum2 , 0);
 		
 	}
 	else 
 	{
-			MCAL_GPIO_WRITE_PIN(GPIOx , PinNum1 , 0);
-			MCAL_GPIO_WRITE_PIN(GPIOx , PinNum2 , 1);
+			MCAL_GPIO_WRITE_PIN(PORTx , PinNum1 , 0);
+			MCAL_GPIO_WRITE_PIN(PORTx , PinNum2 , 1);
 	}	
+}
+void DC_Motor_Stop(void)
+{	
+	
+	Timer0->TCNT0 &= ~(7);
+	OCR0 = 0 ;
 }
