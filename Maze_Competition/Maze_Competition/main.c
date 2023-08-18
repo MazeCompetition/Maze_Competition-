@@ -51,10 +51,13 @@ uint8_t state[3]= {0};
 
 void LCDInit();
 void get_status(void);
-uint8_t get_random_action(uint8_t lower , uint8_t upper );
+uint8_t get_random_action(uint8_t upper );
 uint8_t index_of(uint8_t * arr , uint8_t element);
 void take_action (void);
 uint8_t get_index(int8_t in);
+void current_state_update(uint8_t action );
+
+
 
 int main(void)
 {
@@ -125,9 +128,9 @@ void get_status(void)
 	else
 		state[Left] = 0 ;	   
 }
-uint8_t get_random_action(uint8_t lower , uint8_t upper )
+uint8_t get_random_action(uint8_t upper )
 {
-		return (rand()%(upper-lower+1)+lower);
+		return (rand()%upper);
 }
 
 
@@ -357,48 +360,45 @@ uint8_t index_of(uint8_t * arr , uint8_t element)
 	}
 	return -1 ; 
 }
+
+
+void current_state_update(uint8_t action )
+{
+	if(action == 'N')
+	{
+		current_state[0]++;
+	}
+	else if(action == 'S')
+	{
+		current_state[0]--;
+	}
+	else if(action == 'E')
+	{
+		current_state[1]++;
+	}
+	else if(action == 'W')
+	{
+		current_state[1]--;
+	}			
+}
+
 void take_action (void)
 {
 	uint8_t dimensions[4] = {0} , count  = 0 , get_twice = 0 ;             //{'E','W','N','S'};
     if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] == 0)
 	{
 		get_status();
-			for (uint8_t i = 0 ; i < 3  ; i++)
+		for (uint8_t i = 0 ; i < 3  ; i++)
+		{
+			if(state[i] !=0)
 			{
-				if(state[i] !=0)
+				usual_direction_to_compass_direction(state[i],new_north);
+			
+				if(comp_action == 'N')
 				{
-					usual_direction_to_compass_direction(state[i],new_north);
-				
-					if(comp_action == 'N')
-					{
-							if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
-													dimensions[count++] = 'N';      
-							else if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] != 0)
-							{
-								if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-								{
-									maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-									track_memory[track_counter][0]=0;
-									track_memory[track_counter][1]=0;
-									track_counter--;
-									current_state[0] = track_memory[track_counter][0]; 
-									current_state[1] = track_memory[track_counter][1]; 
-									// go to the previous cell 
-									break;
-								}
-								else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-								{
-									get_twice= 1;
-								}
-							}							  
-					}
-				
-					else if(comp_action == 'E')
-					{
-						if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] == 0)
-												dimensions[count++] = 'E';
-
-						else if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] != 0)
+						if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
+							dimensions[count++] = 'N';      
+						else if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] != 0)
 						{
 							if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
 							{
@@ -406,84 +406,149 @@ void take_action (void)
 								track_memory[track_counter][0]=0;
 								track_memory[track_counter][1]=0;
 								track_counter--;
-								current_state[0] = track_memory[track_counter][0];
-								current_state[1] = track_memory[track_counter][1];
-								// go to the previous cell
+								current_state[0] = track_memory[track_counter][0]; 
+								current_state[1] = track_memory[track_counter][1]; 
+								// go to the previous cell 
 								break;
 							}
 							else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
 							{
 								get_twice= 1;
 							}
-						}
-				
-					}
-					else if(comp_action == 'W')
-					{
-						if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] == 0)
-													dimensions[count++] = 'W';
+						}							  
+				}
+			
+				else if(comp_action == 'E')
+				{
+					if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] == 0)
+						dimensions[count++] = 'E';
 
-						else if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] != 0)
-						{
-							if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-							{
-								maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-								track_memory[track_counter][0]=0;
-								track_memory[track_counter][1]=0;
-								track_counter--;
-								current_state[0] = track_memory[track_counter][0];
-								current_state[1] = track_memory[track_counter][1];
-								// go to the previous cell
-								break;
-							}
-							else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-							{
-								get_twice= 1;
-							}
-					  
-						}
-				   
-					}
-					else if(comp_action == 'S')
+					else if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] != 0)
 					{
-						if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] == 0)
-						dimensions[count++] = 'S';
-
-						else if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] != 0)
+						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
 						{
-							if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-							{
-								maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-								track_memory[track_counter][0]=0;
-								track_memory[track_counter][1]=0;
-								track_counter--;
-								current_state[0] = track_memory[track_counter][0];
-								current_state[1] = track_memory[track_counter][1];
-								// go to the previous cell
-								break;
-							}
-							else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-							{
-								get_twice= 1;
-							}
-					   
-					   
+							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
+							track_memory[track_counter][0]=0;
+							track_memory[track_counter][1]=0;
+							track_counter--;
+							current_state[0] = track_memory[track_counter][0];
+							current_state[1] = track_memory[track_counter][1];
+							// go to the previous cell
+							break;
 						}
-				   
+						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
+						{
+							get_twice= 1;
+						}
 					}
 			
+				}
+				else if(comp_action == 'W')
+				{
+					if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] == 0)
+						dimensions[count++] = 'W';
+
+					else if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] != 0)
+					{
+						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
+						{
+							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
+							track_memory[track_counter][0]=0;
+							track_memory[track_counter][1]=0;
+							track_counter--;
+							current_state[0] = track_memory[track_counter][0];
+							current_state[1] = track_memory[track_counter][1];
+							// go to the previous cell
+							break;
+						}
+						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
+						{
+							get_twice= 1;
+						}
+				  
 					}
-		
-	  	
+			   
+				}
+				else if(comp_action == 'S')
+				{
+					if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] == 0)
+					dimensions[count++] = 'S';
+					else if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] != 0)
+					{
+						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
+						{
+							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
+							track_memory[track_counter][0]=0;
+							track_memory[track_counter][1]=0;
+							track_counter--;
+							current_state[0] = track_memory[track_counter][0];
+							current_state[1] = track_memory[track_counter][1];
+							// go to the previous cell
+							break;
+						}
+						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
+						{
+							get_twice= 1;
+						}
+				   
+				   
+					}
+			   
+				}
 			}
-			
-			
-			
-			
+		
 		}
+
+		if(get_twice || dimensions[0] != 0 )
+		{
+			comp_action =   dimensions[get_random_action(track_counter)];
+			compass_direction_to_usual_direction(comp_action,new_north);
+			current_state_update(comp_action);
+			track_counter++;
+			track_memory[track_counter][0] = current_state[0];
+			track_memory[track_counter][1] = current_state[1];
+		}		
+			
+	}
 	else if (maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] == 1)
 	{
-		
+		get_status();
+		for (uint8_t i = 0 ; i < 3  ; i++)
+		{
+			if(state[i] !=0)
+			{
+				usual_direction_to_compass_direction(state[i],new_north);
+				if(comp_action == 'N')
+				{
+					if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
+						dimensions[count++] = 'N';  
+				}
+				else if(comp_action == 'E')
+				{
+					if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] == 0)
+						dimensions[count++] = 'E';
+				}
+				else if(comp_action == 'S')
+				{
+					if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] == 0)
+					dimensions[count++] = 'S';
+				}
+				else if(comp_action == 'W')
+				{
+					if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] == 0)
+						dimensions[count++] = 'W';
+				}
+
+			}
+
+		}
+
+		comp_action =   dimensions[get_random_action(track_counter)];
+		compass_direction_to_usual_direction(comp_action,new_north);
+		current_state_update(comp_action);
+		track_counter++;
+		track_memory[track_counter][0] = current_state[0];
+		track_memory[track_counter][1] = current_state[1];
 		
 	}
 	
