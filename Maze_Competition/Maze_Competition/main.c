@@ -34,7 +34,7 @@
 // this array will be used to track the paths that robot will take 
 // it will contain 0 == not visited ... 1 == visitet once  ... 2 == visited twice 
 uint8_t  maze_visited_status[length][width] = {0};
-uint8_t  track_memory[length*width][2] = {0} , track_counter=0;
+uint8_t  track_memory[length*width][2] = {0} , track_counter=0 , End_of_maze = 0 ;
 uint8_t  current_state[2] = {0};
 
 uint8_t comp_actions[4] = {'E','W','N','S'};
@@ -56,6 +56,12 @@ uint8_t index_of(uint8_t * arr , uint8_t element);
 void take_action (void);
 uint8_t get_index(int8_t in);
 void current_state_update(uint8_t action );
+uint8_t north_updater(uint8_t usual_action ,uint8_t north);
+uint8_t reverse_usaual_direction(uint8_t direction);
+uint8_t reverse_Copass_direction(uint8_t direction);
+void compass_direction_to_usual_direction(uint8_t comp_action,uint8_t north );
+void usual_direction_to_compass_direction(uint8_t usual_action,uint8_t north);
+
 
 
 
@@ -63,21 +69,19 @@ int main(void)
 {
 	srand(time(NULL));
 	LCDInit();
+
 	DC_Motor_Init(PORTB , GPIO_PinNumber_4 , GPIO_PinNumber_5 );
     Ultrasonic_Init();
 
 
 
 
-
-	while (1)
+	while (!End_of_maze)
 	{
-
-
-     }
-	 
-	  
-	 
+          take_action();
+    }
+	
+	 return 0 ;
 }
 void LCDInit()
 {
@@ -408,6 +412,10 @@ void take_action (void)
 								track_counter--;
 								current_state[0] = track_memory[track_counter][0]; 
 								current_state[1] = track_memory[track_counter][1]; 
+								dimensions[0] = 0;
+								dimensions[1] = 0;
+								dimensions[2] = 0;
+								count = 0 ;
 								// go to the previous cell 
 								break;
 							}
@@ -433,6 +441,10 @@ void take_action (void)
 							track_counter--;
 							current_state[0] = track_memory[track_counter][0];
 							current_state[1] = track_memory[track_counter][1];
+							dimensions[0] = 0;
+							dimensions[1] = 0;
+							dimensions[2] = 0;
+							count = 0 ;
 							// go to the previous cell
 							break;
 						}
@@ -458,6 +470,10 @@ void take_action (void)
 							track_counter--;
 							current_state[0] = track_memory[track_counter][0];
 							current_state[1] = track_memory[track_counter][1];
+							dimensions[0] = 0;
+							dimensions[1] = 0;
+							dimensions[2] = 0;
+							count = 0 ;
 							// go to the previous cell
 							break;
 						}
@@ -483,6 +499,10 @@ void take_action (void)
 							track_counter--;
 							current_state[0] = track_memory[track_counter][0];
 							current_state[1] = track_memory[track_counter][1];
+							dimensions[0] = 0;
+							dimensions[1] = 0;
+							dimensions[2] = 0;
+							count = 0 ;
 							// go to the previous cell
 							break;
 						}
@@ -498,15 +518,32 @@ void take_action (void)
 			}
 		
 		}
-
-		if(get_twice || dimensions[0] != 0 )
+        if(Ultrasonic_Read(Front) > 50 )
+         {
+			 End_of_maze = 1 ;
+	         // go front 
+         }
+		else if(Ultrasonic_Read(Right) > 50)
 		{
-			comp_action =   dimensions[get_random_action(track_counter)];
+			End_of_maze = 1 ;
+			// go right
+		} 
+		else if (Ultrasonic_Read(Left) > 50)
+		{
+			End_of_maze = 1 ;
+             // go left 
+		}		
+		else if(get_twice || dimensions[0] != 0 )
+		{
+			comp_action =   dimensions[get_random_action(count)];
 			compass_direction_to_usual_direction(comp_action,new_north);
+			maze_visited_status[get_index(current_state[0])][get_index(current_state[1])]=1;
+			// move to uaual action 
 			current_state_update(comp_action);
 			track_counter++;
 			track_memory[track_counter][0] = current_state[0];
 			track_memory[track_counter][1] = current_state[1];
+			
 		}		
 			
 	}
@@ -542,14 +579,46 @@ void take_action (void)
 			}
 
 		}
-
-		comp_action =   dimensions[get_random_action(track_counter)];
-		compass_direction_to_usual_direction(comp_action,new_north);
-		current_state_update(comp_action);
-		track_counter++;
-		track_memory[track_counter][0] = current_state[0];
-		track_memory[track_counter][1] = current_state[1];
 		
+		if(Ultrasonic_Read(Front) > 50 )
+		{
+			End_of_maze = 1 ;
+			// go front
+		}
+		else if(Ultrasonic_Read(Right) > 50)
+		{
+			End_of_maze = 1 ;
+			// go right
+		}
+		else if (Ultrasonic_Read(Left) > 50)
+		{
+			End_of_maze = 1 ; 
+			// go left
+		}
+       else if(dimensions[0] != 0 )
+		 {
+			comp_action =   dimensions[get_random_action(count)];
+			compass_direction_to_usual_direction(comp_action,new_north);
+			maze_visited_status[get_index(current_state[0])][get_index(current_state[1])]=1;
+			// move to uaual action
+			current_state_update(comp_action);
+			track_counter++;
+			track_memory[track_counter][0] = current_state[0];
+			track_memory[track_counter][1] = current_state[1];
+		 }
+		 else 
+		 {
+			 maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
+			 track_memory[track_counter][0]=0;
+			 track_memory[track_counter][1]=0;
+			 track_counter--;
+			 current_state[0] = track_memory[track_counter][0];
+			 current_state[1] = track_memory[track_counter][1];
+			 // move to usual direction 
+			 
+		 }
+		 
+		 
 	}
 	
 }
