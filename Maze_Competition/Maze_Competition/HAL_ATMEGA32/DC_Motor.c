@@ -37,7 +37,7 @@
 
 
 
-void DC_Motor_Init(struct GPIO_t * GPIOx , uint8_t PinForward , uint8_t PinBackward )
+void DC_Motors_Init( )
 {
 	TIMER0_CFG_t DC_Motor_cfg;
 	DC_Motor_cfg.COM0 = COM0_Clear;
@@ -54,17 +54,32 @@ void DC_Motor_Init(struct GPIO_t * GPIOx , uint8_t PinForward , uint8_t PinBackw
 	
 	struct GPIO_CFG_t gpio_cfg;
 	gpio_cfg.GPIO_Mode = GPIO_Mode_OUTPUT;
-	gpio_cfg.GPIO_PinNumber = PinForward;
-	MCAL_GPIO_INIT_PIN(GPIOx , &gpio_cfg);
+	gpio_cfg.GPIO_PinNumber = Motor_Right_1;
+	MCAL_GPIO_INIT_PIN(Motor_Enable_PORT , &gpio_cfg);
 
 	gpio_cfg.GPIO_Mode = GPIO_Mode_OUTPUT;
-	gpio_cfg.GPIO_PinNumber = PinBackward;
-	MCAL_GPIO_INIT_PIN(GPIOx , &gpio_cfg);
+	gpio_cfg.GPIO_PinNumber = Motor_Right_2;
+	MCAL_GPIO_INIT_PIN(Motor_Enable_PORT , &gpio_cfg);
+	
+	gpio_cfg.GPIO_Mode = GPIO_Mode_OUTPUT;
+	gpio_cfg.GPIO_PinNumber = Motor_Left_1;
+	MCAL_GPIO_INIT_PIN(Motor_Enable_PORT , &gpio_cfg);
 
+	gpio_cfg.GPIO_Mode = GPIO_Mode_OUTPUT;
+	gpio_cfg.GPIO_PinNumber = Motor_Left_2;
+	MCAL_GPIO_INIT_PIN(Motor_Enable_PORT , &gpio_cfg);
+		
+	
+	gpio_cfg.GPIO_Mode = GPIO_Mode_OUTPUT;
+	gpio_cfg.GPIO_PinNumber = Motor_PWM_Pin;
+	MCAL_GPIO_INIT_PIN(Motor_PWM_Port , &gpio_cfg);
+	
+	Car_Stop();
+	
 	
 }
 
-void DC_Motor_Control( uint8_t direction , uint16_t DutyCycle)
+void DC_Motor_Control( uint8_t Motor, uint8_t direction , uint8_t DutyCycle )
 {
 	
 
@@ -72,23 +87,138 @@ void DC_Motor_Control( uint8_t direction , uint16_t DutyCycle)
 
  	OCR0 = (uint8_t)(( (float)DutyCycle /100) * 256);	//0x0F
 
-	
-	if(direction == direction_right)
+	if(Motor == Motor_Right)
 	{
-		
-		MCAL_GPIO_WRITE_PIN(PORTx , PinNum1 , 1);
-		MCAL_GPIO_WRITE_PIN(PORTx , PinNum2 , 0);
+		if(direction == direction_right)
+		{
+			
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT,  Motor_Right_1 , SET_PIN);
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Right_2 , RESET_PIN);
+			
+		}
+		else
+		{
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Right_1 , RESET_PIN);
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Right_2 , SET_PIN);
+		}
 		
 	}
-	else 
+	else if (Motor == Motor_Left)
 	{
-			MCAL_GPIO_WRITE_PIN(PORTx , PinNum1 , 0);
-			MCAL_GPIO_WRITE_PIN(PORTx , PinNum2 , 1);
-	}	
+		if(direction == direction_right)
+		{
+			
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT,  Motor_Left_1 , SET_PIN);
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Left_2 , RESET_PIN);
+			
+		}
+		else
+		{
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Left_1 , RESET_PIN);
+			MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Left_2 , SET_PIN);
+		}
+		
+	}
+	
+		
+	}
+
 }
-void DC_Motor_Stop(void)
-{	
+
+void Car_MoveTo_Right(void)
+{
+	
+	// Right ......> Forward 
+	// Left .......> Backword 
+	
+	DC_Motor_Control(Motor_Right,direction_left,50);
+	DC_Motor_Control(Motor_Right,direction_left,50);
+	
+	DC_Motor_Control(Motor_Left,direction_right,50);
+	DC_Motor_Control(Motor_Left,direction_right,50);
+	
+	_delay_ms(5);
+	Car_Stop();	
+}
+
+void Car_MoveTo_Left(void)
+{
+	// Right ......> Forward
+	// Left .......> Backword
+		
+	DC_Motor_Control(Motor_Right,direction_right,50);
+	DC_Motor_Control(Motor_Right,direction_right,50);
+		
+	DC_Motor_Control(Motor_Left,direction_left,50);
+	DC_Motor_Control(Motor_Left,direction_left,50);
+		
+	_delay_ms(5);
+	Car_Stop();	
+}
+
+void Car_MoveTo_Forward(void)
+{
+	
+	// Right ......> Forward
+	// Left .......> Backword
+		
+	DC_Motor_Control(Motor_Right,direction_right,50);
+	DC_Motor_Control(Motor_Right,direction_right,50);
+		
+	DC_Motor_Control(Motor_Left,direction_right,50);
+	DC_Motor_Control(Motor_Left,direction_right,50);
+		
+	_delay_ms(5);
+	Car_Stop();
+	
+}
+
+void Car_MoveTo_Backward(void)
+{
+	// Right ......> Forward
+	// Left .......> Backword
+	
+	DC_Motor_Control(Motor_Right,direction_left,50);
+	DC_Motor_Control(Motor_Right,direction_left,50);
+	
+	DC_Motor_Control(Motor_Left,direction_right,50);
+	DC_Motor_Control(Motor_Left,direction_right,50);
+	
+	_delay_ms(10);	
+	Car_Stop();
+	
+}
+
+void Car_MoveTo(uint8_t Direction)
+{
+	if (Direction == 'F')
+	{
+		Car_MoveTo_Forward();
+	}
+	else if (Direction == 'B')
+	{
+		Car_MoveTo_Backward();
+	}
+	else if (Direction == 'R')
+	{
+		Car_MoveTo_Right();
+	}
+	else if (Direction == 'L')
+	{
+		Car_MoveTo_Left();
+	}
+}
+
+void Car_Stop(void)
+{
 	
 	Timer0->TCNT0 &= ~(7);
 	OCR0 = 0 ;
+	
+	MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Right_1,RESET_PIN);
+	MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Right_2,RESET_PIN);
+	
+	MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Left_1,RESET_PIN);
+	MCAL_GPIO_WRITE_PIN(Motor_Enable_PORT , Motor_Left_2,RESET_PIN);
+
 }

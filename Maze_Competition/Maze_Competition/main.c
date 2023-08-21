@@ -36,6 +36,8 @@
 uint8_t  maze_visited_status[length][width] = {0};
 uint8_t  track_memory[length*width][2] = {0} , track_counter=0 , End_of_maze = 0 ;
 uint8_t  current_state[2] = {0};
+uint8_t  Previous_state[2] = {0};
+
 
 uint8_t comp_actions[4] = {'E','W','N','S'};
 uint8_t actions[4] = {'E','W','N','S'};
@@ -44,6 +46,8 @@ uint8_t usual_actions[4] = {'R','L','F','B'};
 uint8_t	new_north = 'F' , usual_action , comp_action;
 	
 uint8_t state[3]= {0};	
+
+
 
 //		|-----------------------------------------------|
 //		|=============FUNCTIONS DECLERATIONS============|
@@ -61,8 +65,12 @@ uint8_t reverse_usaual_direction(uint8_t direction);
 uint8_t reverse_Copass_direction(uint8_t direction);
 void compass_direction_to_usual_direction(uint8_t comp_action,uint8_t north );
 void usual_direction_to_compass_direction(uint8_t usual_action,uint8_t north);
-
-
+uint8_t GoLow ();
+uint8_t GoBack();
+uint8_t Exit_Found();
+uint8_t MarkedState();
+void StateToAction();
+uint8_t deadend();
 
 
 int main(void)
@@ -70,18 +78,40 @@ int main(void)
 	srand(time(NULL));
 	LCDInit();
 
-	DC_Motor_Init(PORTB , GPIO_PinNumber_4 , GPIO_PinNumber_5 );
+	DC_Motors_Init();
     Ultrasonic_Init();
 
 
-
-
-	while (!End_of_maze)
+	while (Exit_Found() == 0)
 	{
           take_action();
     }
 	
 	 return 0 ;
+}
+
+void StateToAction()
+{
+	if(Previous_state[0] > current_state[0])
+	{
+		comp_action = 'S';
+		compass_direction_to_usual_direction(comp_action , new_north);
+	}
+	else if(Previous_state[0] < current_state[0])
+	{
+		comp_action = 'N';
+		compass_direction_to_usual_direction(comp_action , new_north);
+	}
+	else if	(Previous_state[1] > current_state[1])
+	{
+		comp_action = 'W';
+		compass_direction_to_usual_direction(comp_action , new_north);
+	}
+	else if(Previous_state[1] < current_state[1])
+	{
+		comp_action = 'E';
+		compass_direction_to_usual_direction(comp_action , new_north);
+	}	
 }
 void LCDInit()
 {
@@ -117,17 +147,17 @@ void LCDInit()
 void get_status(void)
 {
 	
-	if(Ultrasonic_Read(Front) > 13)
+	if(Ultrasonic_Read(Front) > 12)
 	   state[Front] = 'F' ;
 	 else 
 	   state[Front] = 0 ;
 	 
-	if(Ultrasonic_Read(Right) > 13)
+	if(Ultrasonic_Read(Right) > 12)
 	    state[Right] = 'R' ;
 	else
 		state[Right] = 0 ;
 		
-	if(Ultrasonic_Read(Left) > 13)
+	if(Ultrasonic_Read(Left) > 12)
 		state[Left] = 'L' ;
 	else
 		state[Left] = 0 ;	   
@@ -386,241 +416,271 @@ void current_state_update(uint8_t action )
 	}			
 }
 
-void take_action (void)
+uint8_t GoLow ()
 {
-	uint8_t dimensions[4] = {0} , count  = 0 , get_twice = 0 ;             //{'E','W','N','S'};
-    if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] == 0)
+	
+	uint8_t i = 0 , OnesCount = 0 , ZerosCount = 0;
+	uint8_t ZeroWays[3] = {0};
+	uint8_t OneWays [3] = {0};
+	for	(i = 0 ; i < 3 ; i++)
 	{
-		get_status();
-		for (uint8_t i = 0 ; i < 3  ; i++)
+		if(state[i] != 0)
 		{
-			if(state[i] !=0)
+			usual_direction_to_compass_direction(state[i],new_north);
+			if(comp_action == 'N')
 			{
-				usual_direction_to_compass_direction(state[i],new_north);
-			
-				if(comp_action == 'N')
+				if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
 				{
-						if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
-							dimensions[count++] = 'N';      
-						else if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] != 0)
-						{
-							if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-							{
-								maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-								track_memory[track_counter][0]=0;
-								track_memory[track_counter][1]=0;
-								track_counter--;
-								current_state[0] = track_memory[track_counter][0]; 
-								current_state[1] = track_memory[track_counter][1]; 
-								dimensions[0] = 0;
-								dimensions[1] = 0;
-								dimensions[2] = 0;
-								count = 0 ;
-								// go to the previous cell 
-								break;
-							}
-							else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-							{
-								get_twice= 1;
-							}
-						}							  
+					ZeroWays[ZerosCount++] = 'N';
 				}
-			
-				else if(comp_action == 'E')
+				else if (maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 1)
 				{
-					if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] == 0)
-						dimensions[count++] = 'E';
+					OneWays[OnesCount++] = 'N';	
+				}
 
-					else if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] != 0)
-					{
-						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-						{
-							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-							track_memory[track_counter][0]=0;
-							track_memory[track_counter][1]=0;
-							track_counter--;
-							current_state[0] = track_memory[track_counter][0];
-							current_state[1] = track_memory[track_counter][1];
-							dimensions[0] = 0;
-							dimensions[1] = 0;
-							dimensions[2] = 0;
-							count = 0 ;
-							// go to the previous cell
-							break;
-						}
-						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-						{
-							get_twice= 1;
-						}
-					}
-			
-				}
-				else if(comp_action == 'W')
+			}
+			else if(comp_action == 'S')
+			{
+				if(maze_visited_status[get_index(current_state[0] - 1)][get_index(current_state[1])] == 0)
 				{
-					if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] == 0)
-						dimensions[count++] = 'W';
+					ZeroWays[ZerosCount++] = 'S';
+				}
+				else if (maze_visited_status[get_index(current_state[0] - 1)][get_index(current_state[1])] == 1)
+				{
+					OneWays[OnesCount++] = 'S';	
+				}
 
-					else if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] != 0)
-					{
-						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-						{
-							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-							track_memory[track_counter][0]=0;
-							track_memory[track_counter][1]=0;
-							track_counter--;
-							current_state[0] = track_memory[track_counter][0];
-							current_state[1] = track_memory[track_counter][1];
-							dimensions[0] = 0;
-							dimensions[1] = 0;
-							dimensions[2] = 0;
-							count = 0 ;
-							// go to the previous cell
-							break;
-						}
-						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-						{
-							get_twice= 1;
-						}
-				  
-					}
-			   
-				}
-				else if(comp_action == 'S')
+			}
+			else if(comp_action == 'E')
+			{
+				if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1] + 1)] == 0)
 				{
-					if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] == 0)
-					dimensions[count++] = 'S';
-					else if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] != 0)
-					{
-						if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 1)
-						{
-							maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-							track_memory[track_counter][0]=0;
-							track_memory[track_counter][1]=0;
-							track_counter--;
-							current_state[0] = track_memory[track_counter][0];
-							current_state[1] = track_memory[track_counter][1];
-							dimensions[0] = 0;
-							dimensions[1] = 0;
-							dimensions[2] = 0;
-							count = 0 ;
-							// go to the previous cell
-							break;
-						}
-						else if(maze_visited_status[get_index(track_memory[track_counter][0])][get_index(track_memory[track_counter][1])] == 2)
-						{
-							get_twice= 1;
-						}
-				   
-				   
-					}
-			   
+					ZeroWays[ZerosCount++] = 'E';
+				}
+				else if (maze_visited_status[get_index(current_state[0])][get_index(current_state[1] + 1)] == 1)
+				{
+					OneWays[OnesCount++] = 'E';	
 				}
 			}
-		
+			else if(comp_action == 'W')
+			{
+				if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1] - 1)] == 0)
+				{
+					ZeroWays[ZerosCount++] = 'W';
+				}
+				else if (maze_visited_status[get_index(current_state[0])][get_index(current_state[1] - 1)] == 1)
+				{
+					OneWays[OnesCount++] = 'W';	
+				}
+			}						
 		}
-        if(Ultrasonic_Read(Front) > 50 )
-         {
-			 End_of_maze = 1 ;
-	         // go front 
-         }
-		else if(Ultrasonic_Read(Right) > 50)
-		{
-			End_of_maze = 1 ;
-			// go right
-		} 
-		else if (Ultrasonic_Read(Left) > 50)
-		{
-			End_of_maze = 1 ;
-             // go left 
-		}		
-		else if(get_twice || dimensions[0] != 0 )
-		{
-			comp_action =   dimensions[get_random_action(count)];
-			compass_direction_to_usual_direction(comp_action,new_north);
-			maze_visited_status[get_index(current_state[0])][get_index(current_state[1])]=1;
-			// move to uaual action 
-			current_state_update(comp_action);
-			track_counter++;
-			track_memory[track_counter][0] = current_state[0];
-			track_memory[track_counter][1] = current_state[1];
-			
-		}		
-			
 	}
-	else if (maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] == 1)
+	if(ZeroWays[0] != 0)
 	{
-		get_status();
-		for (uint8_t i = 0 ; i < 3  ; i++)
-		{
-			if(state[i] !=0)
-			{
-				usual_direction_to_compass_direction(state[i],new_north);
-				if(comp_action == 'N')
-				{
-					if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] == 0)
-						dimensions[count++] = 'N';  
-				}
-				else if(comp_action == 'E')
-				{
-					if(maze_visited_status[get_index(current_state[0])][get_index(1+current_state[1])] == 0)
-						dimensions[count++] = 'E';
-				}
-				else if(comp_action == 'S')
-				{
-					if(maze_visited_status[get_index(current_state[0])-1][get_index(current_state[1])] == 0)
-					dimensions[count++] = 'S';
-				}
-				else if(comp_action == 'W')
-				{
-					if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1])-1] == 0)
-						dimensions[count++] = 'W';
-				}
-
-			}
-
-		}
-		
-		if(Ultrasonic_Read(Front) > 50 )
-		{
-			End_of_maze = 1 ;
-			// go front
-		}
-		else if(Ultrasonic_Read(Right) > 50)
-		{
-			End_of_maze = 1 ;
-			// go right
-		}
-		else if (Ultrasonic_Read(Left) > 50)
-		{
-			End_of_maze = 1 ; 
-			// go left
-		}
-       else if(dimensions[0] != 0 )
-		 {
-			comp_action =   dimensions[get_random_action(count)];
-			compass_direction_to_usual_direction(comp_action,new_north);
-			maze_visited_status[get_index(current_state[0])][get_index(current_state[1])]=1;
-			// move to uaual action
-			current_state_update(comp_action);
-			track_counter++;
-			track_memory[track_counter][0] = current_state[0];
-			track_memory[track_counter][1] = current_state[1];
-		 }
-		 else 
-		 {
-			 maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2 ;
-			 track_memory[track_counter][0]=0;
-			 track_memory[track_counter][1]=0;
-			 track_counter--;
-			 current_state[0] = track_memory[track_counter][0];
-			 current_state[1] = track_memory[track_counter][1];
-			 // move to usual direction 
-			 
-		 }
-		 
-		 
+		comp_action = ZeroWays[get_random_action(ZerosCount)];
+		compass_direction_to_usual_direction(comp_action,new_north);
+		return 0;
+	}
+	else
+	{
+		comp_action = OneWays [get_random_action(OnesCount)];
+		compass_direction_to_usual_direction(comp_action,new_north);
+		return 1;
 	}
 	
+}
+
+uint8_t GoBack()
+{
+	if(maze_visited_status[get_index(Previous_state[0])][get_index(Previous_state[1])] == 1)
+	{
+		return 1 ;
+	}
+	else if (maze_visited_status[get_index(Previous_state[0])][get_index(Previous_state[1])] == 2)
+	{
+		Previous_state[0] = current_state[0];
+		Previous_state[1] = current_state[1];
+		return 0;
+	}
+	// edited 
+	return 1;
+}
+
+uint8_t Exit_Found()
+{
+	get_status();
+	if(Ultrasonic_Read(Front) > 55)
+	{
+		usual_action = 'F';
+		// move to usual action
+		Car_MoveTo(usual_action);
+		return 1;
+	}
+	else if (Ultrasonic_Read(Right) > 55)
+	{
+		usual_action = 'R';
+		// move to usual action
+		Car_MoveTo(usual_action);
+		return 1;
+	}
+	else if (Ultrasonic_Read(Left) > 55)
+	{
+		usual_action = 'L';
+		// move to usual action
+		Car_MoveTo(usual_action);
+		return 1;
+	}
+	// edited
+       return 0;
+}
+
+uint8_t MarkedState()
+{
+	int i = 0;
+	for(i = 0 ; i < 3 ; i++)
+	{
+		if(state[i] !=0)
+		{
+			usual_direction_to_compass_direction(state[i],new_north);
+			if(comp_action == 'N')
+			{
+				if(maze_visited_status[get_index(1+current_state[0])][get_index(current_state[1])] != 0)
+				{
+					return 1 ;
+				}	
+			}
+			else if(comp_action == 'S')
+			{
+				if(maze_visited_status[get_index(current_state[0] - 1)][get_index(current_state[1])] != 0)
+				{
+					return 1 ;
+				}	
+			}
+			else if(comp_action == 'E')
+			{
+				if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1] + 1)] != 0)
+				{
+					return 1 ;
+				}	
+			}
+			else if(comp_action == 'W')
+			{
+				if(maze_visited_status[get_index(current_state[0])][get_index(current_state[1] - 1)] != 0)
+				{
+					return 1 ;
+				}	
+			}
+		}
+
+	}
+	return 0 ;
+}
+
+uint8_t deadend()
+{
+	if(Ultrasonic_Read(Front) <= 12 && Ultrasonic_Read(Left) <= 12 && Ultrasonic_Read(Right) <= 12)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+
+}
+
+void take_action (void)
+{
+	if (!deadend())
+	{
+		if(MarkedState())
+		{
+			if(GoBack())
+			{
+
+				track_memory[track_counter][0] = 0;
+				track_memory[track_counter][1] = 0;
+				track_counter--;
+				maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2;
+
+				Previous_state[0] = current_state[0];
+				Previous_state[1] = current_state[1];
+
+				current_state[0] = track_memory[track_counter][0];
+				current_state[1] = track_memory[track_counter][1];
+				
+				StateToAction();
+				// move to uaual action 
+				Car_MoveTo(usual_action);
+				//go back
+				Car_MoveTo('B');
+			}
+			else
+			{
+				if(GoLow())
+				{
+//					if(Previous_state[0] == track_memory[track_counter-1][0] && Previous_state[1] == track_memory[track_counter-1][1])
+//					{
+						maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2;
+						Previous_state[0] = current_state[0];
+						Previous_state[1] = current_state[1];
+						// move to uaual action 
+						Car_MoveTo(usual_action);
+						track_memory[track_counter][0] = 0;
+						track_memory[track_counter][1] = 0;				
+						track_counter--;
+						current_state[0] = track_memory[track_counter][0];
+						current_state[1] = track_memory[track_counter][1];
+						StateToAction();
+						// move to uaual action 
+						Car_MoveTo(usual_action);
+				//	}
+				}
+				else
+				{
+					
+					Previous_state[0] = current_state[0];
+					Previous_state[1] = current_state[1];
+					current_state_update(comp_action);
+					maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 1;
+					track_counter++;
+					track_memory[track_counter][0] = current_state[0];
+					track_memory[track_counter][1] = current_state[1];
+					// move to uaual action 
+					Car_MoveTo(usual_action);
+				}				
+			}
+		}	
+		else
+		{
+			GoLow();
+			maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 1;
+			Previous_state[0] = current_state[0];
+			Previous_state[1] = current_state[1];
+			current_state_update(comp_action);
+			track_counter++;
+			track_memory[track_counter][0] = current_state[0];
+			track_memory[track_counter][1] = current_state[1];
+			// move to uaual action 
+			Car_MoveTo(usual_action);
+		}
+	}
+	else
+	{
+		maze_visited_status[get_index(current_state[0])][get_index(current_state[1])] = 2;
+		Previous_state[0] = current_state[0];
+		Previous_state[1] = current_state[1];
+		track_memory[track_counter][0] = 0;
+		track_memory[track_counter][1] = 0;				
+		track_counter--;
+		current_state[0] = track_memory[track_counter][0];
+		current_state[1] = track_memory[track_counter][1];
+		StateToAction();
+		// move to uaual action 
+		Car_MoveTo(usual_action);
+		//Goback
+		Car_MoveTo('B');
+	}
 }
 uint8_t get_index(int8_t in)
 {
