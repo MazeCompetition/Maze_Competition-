@@ -61,7 +61,7 @@
 
 void Ultrasonic_Init();
 
-float Ultrasonic_Read(uint8_t UltNum);
+uint16_t Ultrasonic_Read(uint8_t UltNum);
 
 
 #endif /* ULTRASONIC_H_ */

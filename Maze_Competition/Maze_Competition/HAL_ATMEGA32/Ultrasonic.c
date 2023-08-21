@@ -39,7 +39,7 @@ void Ultrasonic_Init()
 	ultrasonic.WGM1 = WGM1_Normal;
 	ultrasonic.COM1A = 0;
 	ultrasonic.COM1B = 0;
-	ultrasonic.CS1 = CS1_1024;
+	ultrasonic.CS1 = CS1_256;
 	ultrasonic.TCNT1L = 0;
 	ultrasonic.TCNT1H = 0;
 	ultrasonic.OCR1AL = 0;
@@ -68,9 +68,9 @@ void Ultrasonic_Init()
 	MCAL_TIMER1_INIT(&ultrasonic);
 }
 
-float Ultrasonic_Read(uint8_t UltNum)
+uint16_t Ultrasonic_Read(uint8_t UltNum)
 {
-	uint32_t Val = 0;
+	uint32_t Val1 = 0 , Val2 = 0 , Val = 0;
 	float distance = 0;
 	if (UltNum == 1)
 	{
@@ -99,20 +99,24 @@ float Ultrasonic_Read(uint8_t UltNum)
 		MCAL_GPIO_WRITE_PIN(US_PORTx , Trig4 , 0);
 			
 	}
-	
 
-	while(!(TIMCOM->TIFR &(1 << 5)));
-	TIMCOM->TIFR |= (1 << 5);
+	
 	Timer1->TCNT1H = 0;
 	Timer1->TCNT1L = 0;
+	while(!(TIMCOM->TIFR &(1 << 5)));
+	Val1 |= Timer1->ICR1L;
+	Val1 |= (Timer1->ICR1H << 8);
+	TIMCOM->TIFR |= (1 << 5);
 	Timer1->TCCR1B = (Timer1->TCCR1B & ~(1 << 6)) | ICES1_FallingEdge;
 	while(!(TIMCOM->TIFR &(1 << 5)));
 	
-	Val |= Timer1->ICR1L;
-	Val |= (Timer1->ICR1H << 8);
-	
+	Val2 |= Timer1->ICR1L;
+	Val2 |= (Timer1->ICR1H << 8);
 	TIMCOM->TIFR |= (1 << 5);
-	distance = (((float)Val/7812.5) * 343 / (float)2 ) * 100 ;
+	
+	Val = Val2 - Val1;
+	
+	distance = ((((float)Val/62500) * 343) / (float)2 ) * 100 ;
 	
 	Timer1->TCCR1B = (Timer1->TCCR1B & ~(1 << 6)) | ICES1_RisingEdge;
 	return distance;	

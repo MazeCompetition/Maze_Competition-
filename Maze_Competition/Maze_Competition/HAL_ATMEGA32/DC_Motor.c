@@ -123,7 +123,7 @@ void DC_Motor_Control( uint8_t Motor, uint8_t direction , uint8_t DutyCycle )
 		
 	}
 
-}
+
 
 void Car_MoveTo_Right(void)
 {
@@ -137,7 +137,7 @@ void Car_MoveTo_Right(void)
 	DC_Motor_Control(Motor_Left,direction_right,50);
 	DC_Motor_Control(Motor_Left,direction_right,50);
 	
-	_delay_ms(5);
+	_delay_ms(5000);
 	Car_Stop();	
 }
 
@@ -152,7 +152,7 @@ void Car_MoveTo_Left(void)
 	DC_Motor_Control(Motor_Left,direction_left,50);
 	DC_Motor_Control(Motor_Left,direction_left,50);
 		
-	_delay_ms(5);
+	_delay_ms(5000);
 	Car_Stop();	
 }
 
@@ -168,7 +168,7 @@ void Car_MoveTo_Forward(void)
 	DC_Motor_Control(Motor_Left,direction_right,50);
 	DC_Motor_Control(Motor_Left,direction_right,50);
 		
-	_delay_ms(5);
+	_delay_ms(5000);
 	Car_Stop();
 	
 }
@@ -184,7 +184,7 @@ void Car_MoveTo_Backward(void)
 	DC_Motor_Control(Motor_Left,direction_right,50);
 	DC_Motor_Control(Motor_Left,direction_right,50);
 	
-	_delay_ms(10);	
+	_delay_ms(10000);	
 	Car_Stop();
 	
 }

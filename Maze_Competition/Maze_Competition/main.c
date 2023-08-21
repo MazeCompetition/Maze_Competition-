@@ -78,15 +78,41 @@ int main(void)
 	srand(time(NULL));
 	LCDInit();
 
-	DC_Motors_Init();
+//	DC_Motors_Init();
     Ultrasonic_Init();
+uint16_t mm;
+// 
+// 	while (Exit_Found() == 0 /* edited*/)
+// 	{
+//           take_action();
+//     }
+// 	
 
-
-	while (Exit_Found() == 0)
+	while (1)
 	{
-          take_action();
-    }
-	
+//  		 Car_MoveTo_Right();
+// // 		 _delay_ms(100000);
+// // 		  Car_MoveTo_Left();
+// // 		 _delay_ms(100000); 
+// // 		  Car_MoveTo_Forward();
+// // 		  _delay_ms(100000);
+// // 		  Car_MoveTo_Backward();
+
+
+LCD_WRITE_NUM( Ultrasonic_Read(1));
+_delay_ms(20000);
+LCD_WRITE_COMMAND(LCD_Clear_Display);
+
+LCD_WRITE_NUM(Ultrasonic_Read(2));
+_delay_ms(20000);
+LCD_WRITE_COMMAND(LCD_Clear_Display);
+
+LCD_WRITE_NUM(Ultrasonic_Read(3));
+_delay_ms(20000);
+LCD_WRITE_COMMAND(LCD_Clear_Display);
+		  
+		  
+	}
 	 return 0 ;
 }
 
